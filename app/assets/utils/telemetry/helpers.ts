@@ -294,5 +294,8 @@ export function getJobDetails(data: TelemetryPacket) {
         gpsDistanceKm: Math.max(0, (nav.distance ?? 0) / 1000),
         gpsTimeMinutes: Math.max(0, Math.round((nav.time ?? 0) / 60)),
         jobType: job.jobType || "",
+        truckWorldX: data.truck?.current?.position?.x ?? 0,
+        truckWorldZ: data.truck?.current?.position?.z ?? 0,
+        navDistance: nav.distance ?? 0,
     };
 }

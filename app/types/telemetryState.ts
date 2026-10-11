@@ -52,4 +52,7 @@ export interface JobDetails {
     gpsDistanceKm: number;
     gpsTimeMinutes: number;
     jobType: string;
+    truckWorldX: number;
+    truckWorldZ: number;
+    navDistance: number;
 }

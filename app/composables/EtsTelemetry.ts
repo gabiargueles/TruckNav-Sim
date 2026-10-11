@@ -63,6 +63,9 @@ const jobDetails = reactive<JobDetails>({
     gpsDistanceKm: 0,
     gpsTimeMinutes: 0,
     jobType: "",
+    truckWorldX: 0,
+    truckWorldZ: 0,
+    navDistance: 0,
 });
 
 let lastPosition: [number, number] | null = null;

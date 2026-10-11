@@ -10,6 +10,10 @@ import {
 } from "~/assets/utils/shared/colors";
 import { generateTruckIcon } from "~/assets/utils/map/markers";
 import type { DirectionStep } from "~/assets/utils/routing/directions";
+import {
+    convertAtsToGeo,
+    convertEts2ToGeo,
+} from "~/assets/utils/map/converters";
 
 defineProps<{ goHome: () => void }>();
 
@@ -200,6 +204,98 @@ watch(
         }
     },
 );
+
+// In-game GPS route without job data (waypoint set on the game map, or the
+// way to a pickup): the SDK only gives its distance, so the PC app reads the
+// waypoints from the newest save (autosave while driving, or F5).
+const saveRouteKey = ref("");
+let saveRoutePoll: ReturnType<typeof setInterval> | null = null;
+
+const getPcBaseUrl = async () => {
+    if (isElectron.value && (window as any).electronAPI) {
+        const port = await (window as any).electronAPI.getLocalPort();
+        return `http://127.0.0.1:${port}`;
+    }
+    if (isMobile.value) return `http://${settings.value.savedIP}:8628`;
+    return "";
+};
+
+const syncRouteFromSave = async () => {
+    if (hasActiveJob.value) {
+        saveRouteKey.value = "";
+        return;
+    }
+
+    if (!hasInGameMarker.value) {
+        if (saveRouteKey.value) {
+            clearRouteState();
+            saveRouteKey.value = "";
+        }
+        return;
+    }
+
+    if (
+        !gameConnected.value ||
+        loading.value ||
+        !isWorkerReady.value ||
+        !isTruckSpawned.value ||
+        isCalculatingRoute.value
+    )
+        return;
+
+    // Don't replace a route the user set in TruckNav
+    if (isRouteActive.value && !saveRouteKey.value) return;
+
+    try {
+        const base = await getPcBaseUrl();
+        const res = await fetch(
+            `${base}/api/gps-route?game=${settings.value.selectedGame}`,
+        );
+        if (!res.ok) return;
+
+        const route = (await res.json()) as {
+            waypoints: [number, number][];
+        };
+        if (!route.waypoints?.length) return;
+
+        // A save from before the current route is ignored: the remaining
+        // in-game route can't be shorter than the straight line to its end
+        const end = route.waypoints[route.waypoints.length - 1]!;
+        const straight = Math.hypot(
+            end[0] - jobDetails.truckWorldX,
+            end[1] - jobDetails.truckWorldZ,
+        );
+        if (straight > jobDetails.navDistance * 1.5 + 500) return;
+
+        const key = JSON.stringify(route.waypoints);
+        if (key === saveRouteKey.value) return;
+
+        const toGeo =
+            settings.value.selectedGame === "ets2"
+                ? convertEts2ToGeo
+                : convertAtsToGeo;
+
+        saveRouteKey.value = key;
+        clearRouteState();
+        isClickingEnabled.value = false;
+        waypointList.value = route.waypoints.map(([x, z]) => toGeo(x, z));
+
+        await handleMultiRouteCalculation(
+            truckCoords.value!,
+            truckHeading.value,
+            scale.value,
+            averageSpeed.value,
+        );
+    } catch {
+        // PC app not reachable (older version or another port)
+    }
+};
+
+onMounted(() => {
+    saveRoutePoll = setInterval(syncRouteFromSave, 8000);
+});
+
+watch(hasInGameMarker, () => syncRouteFromSave());
 
 watch(
     () => activeSettings.value.themeColor,
@@ -407,6 +503,7 @@ onUnmounted(() => {
 
     if (routeTimer) clearTimeout(routeTimer);
     if (uiTimer) clearTimeout(uiTimer);
+    if (saveRoutePoll) clearInterval(saveRoutePoll);
 
     if (map.value) {
         map.value.remove();

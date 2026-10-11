@@ -28,6 +28,7 @@ import {
 } from "fs";
 import * as dgram from "dgram";
 import * as registry from "native-reg";
+import { getGpsRouteFromSave } from "./gpsFromSave";
 
 import { getSettings, saveSettings } from "./settingsManager";
 import type { AppSettings } from "./settingsConstants";
@@ -436,6 +437,18 @@ async function startWebServer() {
         const success = await handleMapDownload(req.body.mapId, req.body.url);
 
         res.json({ success });
+    });
+
+    // In-game GPS route read from the newest save (manual waypoints and
+    // pickups the telemetry SDK doesn't expose)
+    server.get("/api/gps-route", async (req, res) => {
+        const game = req.query.game === "ets2" ? "ets2" : "ats";
+        const route = getGpsRouteFromSave(
+            game,
+            app.getPath("documents"),
+            await getSteamPath(),
+        );
+        res.json(route ?? { waypoints: [], savedAt: 0 });
     });
 
     server.post("/api/uninstall-map", async (req, res) => {
