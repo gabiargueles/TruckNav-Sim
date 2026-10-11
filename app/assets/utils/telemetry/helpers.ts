@@ -223,3 +223,69 @@ function updateMovingAverage(
     const sum = speedSamples.reduce((a, b) => a + b, 0);
     return sum / speedSamples.length;
 }
+
+const SCS_EPOCH_MS = new Date("0001-01-01T00:00:00Z").getTime();
+const MAX_RELATIVE_MINUTES = 60 * 24 * 30;
+
+/**
+ * Converts a telemetry time value (ISO string based on 0001-01-01, or a
+ * plain number of minutes) into minutes.
+ */
+function telemetryTimeToMinutes(value: unknown): number | null {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "object" && value !== null) {
+        const obj = value as Record<string, unknown>;
+        if (typeof obj.value === "number") return obj.value;
+        if (typeof obj.date === "string") return telemetryTimeToMinutes(obj.date);
+        return null;
+    }
+    if (typeof value !== "string") return null;
+
+    const parsed = new Date(value.endsWith("Z") || /[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`);
+    const ms = parsed.getTime();
+    if (Number.isNaN(ms)) return null;
+
+    return Math.round((ms - SCS_EPOCH_MS) / 60000);
+}
+
+export function getJobDetails(data: TelemetryPacket) {
+    const job = data.job ?? ({} as TelemetryPacket["job"]);
+    const nav = data.navigation ?? ({} as TelemetryPacket["navigation"]);
+    const trailer = data.trailers?.[0];
+
+    const hasActiveJob = !!data.specialEvents?.onJob;
+
+    let remainingMinutes = telemetryTimeToMinutes(job.remainingDeliveryTime);
+    if (remainingMinutes != null && remainingMinutes > MAX_RELATIVE_MINUTES) {
+        // Value came as an absolute deadline: subtract current game time
+        const now = telemetryTimeToMinutes(data.common?.gameTime);
+        remainingMinutes = now != null ? remainingMinutes - now : null;
+    }
+    if (remainingMinutes != null && remainingMinutes > MAX_RELATIVE_MINUTES) {
+        remainingMinutes = null; // no deadline
+    }
+
+    const cargoDamage = Math.max(
+        job.cargo?.cargoDamage ?? 0,
+        trailer?.damage?.cargo ?? 0,
+    );
+
+    return {
+        hasActiveJob,
+        cargoLoaded: !!job.cargoLoaded,
+        cargoName: job.cargo?.name || "",
+        cargoMassKg: job.cargo?.mass ?? 0,
+        cargoDamage: Math.min(1, Math.max(0, cargoDamage)),
+        income: job.income ?? 0,
+        remainingMinutes,
+        sourceCityName: job.citySource || job.citySourceId || "",
+        sourceCompanyName: job.companySource || job.companySourceId || "",
+        destinationCityName: job.cityDestination || job.cityDestinationId || "",
+        destinationCompanyName:
+            job.companyDestination || job.companyDestinationId || "",
+        gpsDistanceKm: Math.max(0, (nav.distance ?? 0) / 1000),
+        gpsTimeMinutes: Math.max(0, Math.round((nav.time ?? 0) / 60)),
+        jobType: job.jobType || "",
+    };
+}

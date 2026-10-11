@@ -47,6 +47,7 @@ const {
     scale,
     averageSpeed,
     destinationCompany,
+    jobDetails,
 } = useEtsTelemetry();
 
 // Map Areas Data
@@ -525,6 +526,17 @@ const onCancelRoute = () => {
                         <HudButton :onClick="toggleSettingsPanel">
                             <Icon name="lucide:settings" class="icon" />
                         </HudButton>
+
+                        <Transition name="fade">
+                            <JobCard
+                                v-if="
+                                    gameConnected &&
+                                    jobDetails.hasActiveJob &&
+                                    settings.activeUiComponents.includes('job')
+                                "
+                                :job="jobDetails"
+                            />
+                        </Transition>
                     </div>
 
                     <ManeuverCard

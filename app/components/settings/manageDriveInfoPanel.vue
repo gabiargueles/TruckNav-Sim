@@ -46,6 +46,13 @@ const components = computed<Component[]>(() => [
     },
 
     {
+        id: "job",
+        title: t("uiComponents.jobTitle"),
+        description: t("uiComponents.jobDescription"),
+        iconName: "lucide:package",
+    },
+
+    {
         id: "topBar",
         title: t("uiComponents.topBarTitle"),
         description: t("uiComponents.topBarDescription"),
@@ -126,6 +133,7 @@ function toggleUiComponent(componentId: UiComponent) {
         <Icon name="lucide:clock" />
         <Icon name="lucide:octagon-alert" />
         <Icon name="lucide:info" />
+        <Icon name="lucide:package" />
     </div>
 </template>
 

@@ -123,6 +123,19 @@
         "speedLimitTitle": "Tempolimit-Schild",
         "speedTitle": "Geschwindigkeit",
         "topBarDescription": "Blendet die komplette obere Leiste mit Fahrinfos aus.",
-        "topBarTitle": "Obere Leiste"
+        "topBarTitle": "Obere Leiste",
+        "jobTitle": "Auftragsinfo",
+        "jobDescription": "Zeigt den aktuellen Auftrag: Fracht, Start, Ziel, Bezahlung, Frist und Frachtschaden. Tippe auf die Karte zum Auf- oder Zuklappen."
+    },
+    "jobCard": {
+        "title": "Auftrag",
+        "pickup": "Abholen",
+        "delivering": "Lieferung",
+        "deadline": "Frist",
+        "remaining": "GPS Rest",
+        "weight": "Gewicht",
+        "damage": "Schaden",
+        "noDeadline": "Keine Frist",
+        "late": "Verspätet"
     }
 }

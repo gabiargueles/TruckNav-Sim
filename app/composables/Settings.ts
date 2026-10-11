@@ -9,7 +9,8 @@ export type UiComponent =
     | "sleep"
     | "time"
     | "speedLimit"
-    | "topBar";
+    | "topBar"
+    | "job";
 export type ActiveComponents = UiComponent[];
 export type LocaleCode = "en" | "de" | "nl" | "cs" | "sk" | "ko" | "ro";
 
@@ -41,6 +42,8 @@ export interface AppSettingsState {
     activeUiComponents: ActiveComponents;
     locale: LocaleCode;
     routeTimeMode: RouteTimeMode;
+    jobCardMigrated?: boolean;
+    jobCardExpanded?: boolean;
 }
 
 const DEFAULT_PROFILE: GameProfile = {
@@ -85,6 +88,7 @@ const DEFAULT_SETTINGS: AppSettingsState = {
         "time",
         "sleep",
         "topBar",
+        "job",
     ],
     locale: "en",
     routeTimeMode: "game",
@@ -167,6 +171,19 @@ export const useSettings = () => {
             try {
                 const parsed = JSON.parse(savedString);
                 settings.value = { ...DEFAULT_SETTINGS, ...parsed };
+
+                // Job card: enable it once for profiles saved before it existed
+                if (!parsed.jobCardMigrated) {
+                    const list = settings.value.activeUiComponents || [];
+                    if (!list.includes("job")) {
+                        settings.value.activeUiComponents = [...list, "job"];
+                    }
+                    settings.value.jobCardMigrated = true;
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        JSON.stringify(settings.value),
+                    );
+                }
 
                 settings.value.profiles = {
                     ets2: {

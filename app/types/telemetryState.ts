@@ -36,3 +36,20 @@ export interface JobState {
     destinationCity: string;
     destinationCompany: string;
 }
+
+export interface JobDetails {
+    hasActiveJob: boolean;
+    cargoLoaded: boolean;
+    cargoName: string;
+    cargoMassKg: number;
+    cargoDamage: number;
+    income: number;
+    remainingMinutes: number | null;
+    sourceCityName: string;
+    sourceCompanyName: string;
+    destinationCityName: string;
+    destinationCompanyName: string;
+    gpsDistanceKm: number;
+    gpsTimeMinutes: number;
+    jobType: string;
+}

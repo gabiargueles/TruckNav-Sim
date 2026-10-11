@@ -123,6 +123,19 @@
         "speedLimitTitle": "Speed Sign",
         "speedTitle": "Speed",
         "topBarDescription": "Hides the whole top bar with drive info.",
-        "topBarTitle": "Top Bar"
+        "topBarTitle": "Top Bar",
+        "jobTitle": "Delivery Info",
+        "jobDescription": "Shows the current job: cargo, origin, destination, pay, deadline and cargo damage. Tap the card to expand or collapse it."
+    },
+    "jobCard": {
+        "title": "Delivery",
+        "pickup": "Pick up",
+        "delivering": "Delivering",
+        "deadline": "Deadline",
+        "remaining": "GPS left",
+        "weight": "Weight",
+        "damage": "Damage",
+        "noDeadline": "No limit",
+        "late": "Late"
     }
 }

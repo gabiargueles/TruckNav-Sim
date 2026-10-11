@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import {
     getGameState,
     getJobState,
+    getJobDetails,
     getNavigationState,
     getTruckState,
 } from "~/assets/utils/telemetry/helpers";
@@ -10,6 +11,7 @@ import type {
     GameState,
     NavigationState,
     JobState,
+    JobDetails,
     TelemetryUpdate,
     TelemetryPacket,
 } from "~/types";
@@ -44,6 +46,23 @@ const jobState = reactive<JobState>({
     sourceCompany: "0",
     destinationCity: "0",
     destinationCompany: "0",
+});
+
+const jobDetails = reactive<JobDetails>({
+    hasActiveJob: false,
+    cargoLoaded: false,
+    cargoName: "",
+    cargoMassKg: 0,
+    cargoDamage: 0,
+    income: 0,
+    remainingMinutes: null,
+    sourceCityName: "",
+    sourceCompanyName: "",
+    destinationCityName: "",
+    destinationCompanyName: "",
+    gpsDistanceKm: 0,
+    gpsTimeMinutes: 0,
+    jobType: "",
 });
 
 let lastPosition: [number, number] | null = null;
@@ -195,6 +214,12 @@ export function useEtsTelemetry() {
             destinationCompany: destinationCompany,
         });
 
+        try {
+            Object.assign(jobDetails, getJobDetails(data));
+        } catch (e) {
+            console.error("Job details error", e);
+        }
+
         sendDiscordRpcState({
             game: data.game,
             connected: gameConnected,
@@ -249,6 +274,10 @@ export function useEtsTelemetry() {
             hasActiveJob: false,
         });
 
+        Object.assign(jobDetails, {
+            hasActiveJob: false,
+        });
+
         clearDiscordRpcState();
 
         if (onUpdate && wasConnected) {
@@ -266,6 +295,7 @@ export function useEtsTelemetry() {
         ...toRefs(truckState),
         ...toRefs(gameState),
         ...toRefs(jobState),
+        jobDetails,
         startTelemetry,
         stopTelemetry,
     };
