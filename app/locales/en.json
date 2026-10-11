@@ -19,7 +19,9 @@
         "resume": "Resume",
         "selectGame": "Select Game",
         "startNavigation": "Start Navigation",
-        "stop": "Stop"
+        "stop": "Stop",
+        "warning": "Warning",
+        "caution": "Caution"
     },
     "desktop": {
         "app": "App:",
@@ -109,7 +111,8 @@
         "german": "German",
         "slovak": "Slovak",
         "romanian": "Romanian",
-        "korean": "Korean"
+        "korean": "Korean",
+        "portuguese": "Portuguese (Brazil)"
     },
     "uiComponents": {
         "fuelDescription": "Shows your remaining fuel level and it pulses when running low.",
@@ -137,5 +140,31 @@
         "damage": "Damage",
         "noDeadline": "No limit",
         "late": "Late"
+    },
+    "mapManager": {
+        "mapMods": "Map Mods",
+        "none": "None",
+        "uninstallBaseMap": "Uninstall Base Map",
+        "downloadBaseMap": "Download Base Map",
+        "companionNote": "Please make sure that TruckNav PC Companion is running before downloading",
+        "selectMapMod": "Select Map Mod",
+        "defaultMap": "Default Map",
+        "defaultMapDescription": "Standard game map (No Mods)",
+        "selected": "Selected",
+        "select": "Select",
+        "download": "Download",
+        "inProgress": "In Progress",
+        "noMods": "No mods are currently available for this game."
+    },
+    "directions": {
+        "depart": "Head on Route",
+        "left": "Turn left",
+        "right": "Turn right",
+        "roundabout": "exit at the roundabout",
+        "roundaboutExit": "{n}{ord} exit",
+        "exitHighway": "Take the exit",
+        "keepLeft": "Keep left",
+        "keepRight": "Keep right",
+        "arrived": "Arrived"
     }
 }

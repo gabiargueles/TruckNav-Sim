@@ -5,6 +5,7 @@ import cs from "~/locales/cs.json";
 import sk from "~/locales/sk.json";
 import ro from "~/locales/ro.json";
 import ko from "~/locales/ko.json";
+import ptBR from "~/locales/pt-BR.json";
 
 type TranslationTree = typeof en;
 
@@ -16,6 +17,7 @@ const dictionaries: Record<LocaleCode, TranslationTree> = {
     sk,
     ro,
     ko,
+    "pt-BR": ptBR,
 };
 
 function readValue(tree: TranslationTree, path: string): string | undefined {

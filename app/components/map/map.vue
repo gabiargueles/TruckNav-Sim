@@ -9,6 +9,7 @@ import {
     lightenColor,
 } from "~/assets/utils/shared/colors";
 import { generateTruckIcon } from "~/assets/utils/map/markers";
+import type { DirectionStep } from "~/assets/utils/routing/directions";
 
 defineProps<{ goHome: () => void }>();
 
@@ -486,6 +487,28 @@ const toggleSettingsPanel = () => {
     isSettingsPanelOpened.value = !isSettingsPanelOpened.value;
 };
 
+const directionText = (step: DirectionStep) => {
+    if (step.type === "roundabout") {
+        const n = step.exitCount ?? 0;
+        if (n <= 0) return t("directions.roundabout");
+        const ord = n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+        return t("directions.roundaboutExit")
+            .replace("{n}", String(n))
+            .replace("{ord}", ord);
+    }
+    const keys: Partial<Record<DirectionStep["type"], string>> = {
+        depart: "directions.depart",
+        left: "directions.left",
+        right: "directions.right",
+        "exit-highway": "directions.exitHighway",
+        "slight-left": "directions.keepLeft",
+        "slight-right": "directions.keepRight",
+        destination: "directions.arrived",
+    };
+    const key = keys[step.type];
+    return key ? t(key) : step.text;
+};
+
 const onCancelRoute = () => {
     clearRouteState();
     stopNavigationMode();
@@ -546,7 +569,9 @@ const onCancelRoute = () => {
                         :upcoming-turns="fullRouteDirections"
                         :distance-to-next-turn="nextTurnDistance"
                         :next-instruction="
-                            fullRouteDirections[1]?.text || t('map.followRoute')
+                            fullRouteDirections[1]
+                                ? directionText(fullRouteDirections[1])
+                                : t('map.followRoute')
                         "
                     />
 

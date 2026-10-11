@@ -12,7 +12,15 @@ export type UiComponent =
     | "topBar"
     | "job";
 export type ActiveComponents = UiComponent[];
-export type LocaleCode = "en" | "de" | "nl" | "cs" | "sk" | "ko" | "ro";
+export type LocaleCode =
+    | "en"
+    | "de"
+    | "nl"
+    | "cs"
+    | "sk"
+    | "ko"
+    | "ro"
+    | "pt-BR";
 
 export interface GameProfile {
     themeColor: string;
