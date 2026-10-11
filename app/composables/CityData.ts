@@ -127,7 +127,17 @@ export function useCityData() {
 
             const [citiesData, companiesDataRes, scaleData] = await Promise.all(
                 [
-                    fetchSafe<ScsCity[]>(citiesUrl),
+                    // Some map packs (ATS) ship the file as usa-cities.json
+                    fetchSafe<ScsCity[]>(citiesUrl).then(
+                        async (cities) =>
+                            cities ??
+                            fetchSafe<ScsCity[]>(
+                                await getMapFileUrl(
+                                    folder,
+                                    "map-data/usa-cities.json",
+                                ),
+                            ),
+                    ),
                     fetchSafe<GeoJsonCollection>(companiesUrl),
                     fetchSafe<MapScaleConfig>(scaleUrl),
                 ],

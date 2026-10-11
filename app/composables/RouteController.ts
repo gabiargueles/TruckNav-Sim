@@ -231,32 +231,45 @@ export const useRouteController = (
             isYardStart.value = startConfig.type === "yard";
             startNodeId.value = startConfig.toId;
 
-            const waypointsNodeGroups: number[][] = [];
-            for (const waypoint of waypointList.value) {
-                let candidates = getClosestNodes(waypoint, 10, 0.1);
+            const buildNodeGroups = (limit: number) => {
+                const groups: number[][] = [];
+                for (const waypoint of waypointList.value) {
+                    let candidates = getClosestNodes(waypoint, limit, 0.1);
 
-                if (candidates.length === 0) {
-                    candidates = getClosestNodes(waypoint, 10, 0.4);
-                }
-                if (candidates.length === 0) {
-                    candidates = getClosestNodes(waypoint, 10, 1.5);
-                }
+                    if (candidates.length === 0) {
+                        candidates = getClosestNodes(waypoint, limit, 0.4);
+                    }
+                    if (candidates.length === 0) {
+                        candidates = getClosestNodes(waypoint, limit, 1.5);
+                    }
 
-                waypointsNodeGroups.push(candidates);
-            }
+                    groups.push(candidates);
+                }
+                return groups;
+            };
 
             const userDlcs = toRaw(activeSettings.value.ownedDlcs);
 
-            const result = await calculateMultiRouteInWorker(
-                startNodeId.value!,
-                waypointList.value,
-                waypointsNodeGroups,
-                truckHeading,
-                startConfig.type as "road" | "yard",
-                userDlcs,
-                sdkScale,
-                avgSpeed,
-            );
+            const runWorker = (groups: number[][]) =>
+                calculateMultiRouteInWorker(
+                    startNodeId.value!,
+                    waypointList.value,
+                    groups,
+                    truckHeading,
+                    startConfig.type as "road" | "yard",
+                    userDlcs,
+                    sdkScale,
+                    avgSpeed,
+                );
+
+            // The worker stops at the first candidate it reaches, which is the
+            // one closest to the truck, not to the destination. Try the node
+            // closest to each stop first so the pin lands at the company, and
+            // fall back to the wider candidate set if that node is unreachable.
+            let result = await runWorker(buildNodeGroups(1));
+            if (!result) {
+                result = await runWorker(buildNodeGroups(10));
+            }
 
             if (result) {
                 isRouteActive.value = true;

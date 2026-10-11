@@ -83,6 +83,10 @@ export function getNavigationState(data: TelemetryPacket) {
     return { fuel, speedLimit, restStoptime, restStopMinutes: totalMinutes };
 }
 
+// Job (source|destination|income) whose trailer has already been picked up,
+// so detaching it mid-trip doesn't send the route back to the source company.
+let pickedUpJobKey = "";
+
 export function getJobState(data: TelemetryPacket, selectedGame: GameType) {
     let companyTarget = "";
     let cityTarget = "";
@@ -93,32 +97,35 @@ export function getJobState(data: TelemetryPacket, selectedGame: GameType) {
     const destinationCity = data.job.cityDestinationId;
     const destinationCompany = data.job.companyDestinationId;
 
-    const jobType = data.job.jobType;
-
     const sourceCity = data.job.citySourceId;
     const sourceCompany = data.job.companySourceId;
 
-    if (data.trailers[0]) {
-        const isTrailerAvailable =
-            data.trailers[0].position.y !== 0 &&
-            data.trailers[0].position.x !== 0;
+    const jobKey = `${sourceCompany}|${destinationCompany}|${data.job.income}`;
+    if (!hasActiveJob) pickedUpJobKey = "";
 
-        const isTrailerAttached = data.trailers[0]?.attached;
+    const trailer = data.trailers?.[0];
+    const isTrailerAvailable =
+        !!trailer && trailer.position.y !== 0 && trailer.position.x !== 0;
+    const isTrailerAttached = !!trailer?.attached;
+    const cargoNotLoaded = data.job.cargoLoaded === false;
 
-        if (jobType === "external_contracts" || jobType === "external_market") {
-            companyTarget =
-                isTrailerAvailable && !isTrailerAttached
-                    ? sourceCompany
-                    : destinationCompany;
+    if (hasActiveJob && isTrailerAttached && !cargoNotLoaded) {
+        pickedUpJobKey = jobKey;
+    }
 
-            cityTarget =
-                isTrailerAvailable && !isTrailerAttached
-                    ? sourceCity
-                    : destinationCity;
-        } else {
-            companyTarget = destinationCompany;
-            cityTarget = destinationCity;
-        }
+    // Same as the in-game GPS: while the cargo still has to be picked up
+    // (trailer waiting at the source, or own trailer not loaded yet), go to
+    // the source company first. Applies to every job type, not only
+    // external contracts.
+    const mustPickUp =
+        hasActiveJob &&
+        !!sourceCompany &&
+        pickedUpJobKey !== jobKey &&
+        ((isTrailerAvailable && !isTrailerAttached) || cargoNotLoaded);
+
+    if (mustPickUp) {
+        companyTarget = sourceCompany;
+        cityTarget = sourceCity;
     } else {
         companyTarget = destinationCompany;
         cityTarget = destinationCity;
