@@ -52,6 +52,7 @@ export interface AppSettingsState {
     routeTimeMode: RouteTimeMode;
     jobCardMigrated?: boolean;
     jobCardExpanded?: boolean;
+    localeAutoDetected?: boolean;
 }
 
 const DEFAULT_PROFILE: GameProfile = {
@@ -103,6 +104,24 @@ const DEFAULT_SETTINGS: AppSettingsState = {
 };
 
 const STORAGE_KEY = "truck-nav-settings";
+
+function detectSystemLocale(): LocaleCode {
+    const supported: LocaleCode[] = ["en", "de", "nl", "cs", "sk", "ko", "ro"];
+    const languages =
+        typeof navigator !== "undefined"
+            ? navigator.languages?.length
+                ? navigator.languages
+                : [navigator.language]
+            : [];
+
+    for (const lang of languages) {
+        const code = (lang || "").toLowerCase();
+        if (code.startsWith("pt")) return "pt-BR";
+        const base = code.split("-")[0] as LocaleCode;
+        if (supported.includes(base)) return base;
+    }
+    return "en";
+}
 
 export const useSettings = () => {
     const settings = useState<AppSettingsState>("app-settings", () => ({
@@ -215,6 +234,15 @@ export const useSettings = () => {
             }
         } else {
             settings.value = { ...DEFAULT_SETTINGS };
+        }
+
+        // Language: follow the system language once, if the user never picked one
+        if (!settings.value.localeAutoDetected) {
+            if (settings.value.locale === "en") {
+                settings.value.locale = detectSystemLocale();
+            }
+            settings.value.localeAutoDetected = true;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(settings.value));
         }
 
         applySideEffects();
