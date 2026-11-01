@@ -92,7 +92,14 @@ export function getJobState(data: TelemetryPacket, selectedGame: GameType) {
     let cityTarget = "";
     let trailerCoords: [number, number] = [0, 0];
 
-    const hasActiveJob = data.specialEvents.onJob;
+    // The SDK's onJob event only fires when a job is accepted and does NOT
+    // re-fire when the game is reloaded mid-job, so a delivery already in
+    // progress reports onJob === false after reopening the game. Treat a real
+    // contracted job (it has income and a destination) as active as well, so
+    // the route keeps being drawn in that case.
+    const hasActiveJob =
+        data.specialEvents.onJob ||
+        (data.job.income > 0 && !!data.job.companyDestinationId);
 
     const destinationCity = data.job.cityDestinationId;
     const destinationCompany = data.job.companyDestinationId;
@@ -261,7 +268,11 @@ export function getJobDetails(data: TelemetryPacket) {
     const nav = data.navigation ?? ({} as TelemetryPacket["navigation"]);
     const trailer = data.trailers?.[0];
 
-    const hasActiveJob = !!data.specialEvents?.onJob;
+    // Same reasoning as getJobState: onJob is false after reloading the game
+    // mid-job, so also accept a real contracted job (income + destination).
+    const hasActiveJob =
+        !!data.specialEvents?.onJob ||
+        ((job.income ?? 0) > 0 && !!job.companyDestinationId);
 
     let remainingMinutes = telemetryTimeToMinutes(job.remainingDeliveryTime);
     if (remainingMinutes != null && remainingMinutes > MAX_RELATIVE_MINUTES) {
