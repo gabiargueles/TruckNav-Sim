@@ -1,4 +1,6 @@
-export const DEVIATION_THRESHOLD_SQ = 0.0005;
+// Baixado de 0.0005 para recalcular a rota com menos desvio (ela errou uma
+// saída e o app mantinha o laço antigo em vez de refazer). Menor = mais sensível.
+export const DEVIATION_THRESHOLD_SQ = 0.0002;
 
 export function toRad(deg: number) {
     return (deg * Math.PI) / 180;

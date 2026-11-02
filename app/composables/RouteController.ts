@@ -821,18 +821,18 @@ export const useRouteController = (
                 layout: { "line-join": "round", "line-cap": "round" },
                 paint: {
                     "line-color": activeSettings.value.routeColor,
+                    // Linha da rota mais grossa e crescente (antes afinava pra 6
+                    // no zoom 10.5 e ficava fina/desalinhada da pista).
                     "line-width": [
                         "interpolate",
                         ["linear"],
                         ["zoom"],
                         10,
-                        8,
-                        10.2,
-                        9,
-                        10.5,
-                        6,
-                        11.5,
                         11,
+                        11.5,
+                        16,
+                        13,
+                        20,
                     ],
                 },
             },
